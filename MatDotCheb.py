@@ -105,6 +105,6 @@ if __name__ == '__main__':
     N_succ = 5
     r = 2
     # MatDot, Chebyshev
-    DataDir = '../Data/arxiv/'
+    DataDir = 'Data/arxiv/'
     pathlib.Path(DataDir).mkdir(parents=True, exist_ok=True)
     getCode(m, N_succ, r, coding='MatDot', write=True, div=1,DataDir=DataDir)

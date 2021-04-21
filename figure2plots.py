@@ -153,7 +153,7 @@ kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
               linestyle="none", color='k', mec='k', mew=1, clip_on=False)
 ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
 ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
-plt.savefig('../Data/Pics/jres1.png')
+# plt.savefig('../Data/Pics/jres1.png')
 plt.show()
 
 # Fig 2b
@@ -194,7 +194,7 @@ kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
               linestyle="none", color='k', mec='k', mew=1, clip_on=False)
 ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
 ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
-plt.savefig('../Data/Pics/jres2.png')
+# plt.savefig('../Data/Pics/jres2.png')
 plt.show()
 
 # Fig 2c
@@ -229,7 +229,7 @@ plt.figure(figsize=(9,7))
 plt.xlabel(r'div $\rightarrow$')
 plt.ylabel(r'$\epsilon$ $\rightarrow$')
 plt.legend(title='$N_{succ}$',fontsize='large',title_fontsize='xx-large')
-plt.savefig('../Data/Pics/jres3.png')
+# plt.savefig('../Data/Pics/jres3.png')
 plt.show()
 
 # Fig 2d
@@ -265,5 +265,5 @@ plt.xlabel(r'$N_{succ}$ $\rightarrow$')
 plt.ylabel(r'$\epsilon$ $\rightarrow$')
 # plt.legend(title="div",fontsize='large',loc='upper left',bbox_to_anchor=(1.05, 1))
 plt.legend(title="div",fontsize='large',title_fontsize='xx-large')
-plt.savefig('../Data/Pics/jres4.png')
+# plt.savefig('../Data/Pics/jres4.png')
 plt.show()

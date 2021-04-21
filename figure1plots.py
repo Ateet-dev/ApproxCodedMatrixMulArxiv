@@ -15,8 +15,8 @@ vals = []
 outputs2 = {}
 outputs3 = {'m':np.array([]),'r':np.array([]),'loss':np.array([])}
 # outputs3 = {'m':np.array([]),'loss':np.array([])}
-for path in Path('../Data/Logs/arxiv/').rglob('*.txt'):
-    trial_part = path.parts[3]
+for path in Path('Data/OptCodeLogs/').rglob('*.txt'):
+    trial_part = path.parts[-1]
     mkr_match = re.search('m(\d+)_k(\d+)_r(\d+).txt', trial_part)
     if mkr_match is None:
         # print('Skipping '+trial_part)
@@ -81,7 +81,7 @@ plt.ylabel(r'Loss $\rightarrow$')
 # plt.title('Loss vs m for k=2m-2')
 # plt.legend(loc='upper left',bbox_to_anchor=(1.05, 1))
 plt.legend(loc='upper left')
-plt.savefig('../Data/Pics/res1.png')
+# plt.savefig('../Data/Pics/res1.png')
 plt.show()
 
 klist = sorted(outputs[1].keys(), key=lambda x: x[-1])
@@ -101,7 +101,7 @@ plt.xlabel(r'k$\rightarrow$')
 plt.ylabel(r'Loss $\rightarrow$')
 # plt.title('Loss vs k for P=k+1')
 plt.legend(loc='upper left',bbox_to_anchor=(1.05, 1))
-plt.savefig('../Data/Pics/res4.png')
+# plt.savefig('../Data/Pics/res4.png')
 plt.show()
 
 # Fig 1c
@@ -110,7 +110,7 @@ df=pd.DataFrame(outputs3)
 grid=sns.lineplot(data=df,x='m',y='loss',hue='r')
 grid.set(yscale='log')
 grid.legend(['P=k+1', 'P=k+2','P=k+3'])
-plt.savefig('../Data/Pics/res7.png')
+# plt.savefig('../Data/Pics/res7.png')
 plt.show()
 # ax=plt.axes()
 # ax.yaxis.set_label_position("right")

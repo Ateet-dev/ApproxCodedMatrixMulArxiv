@@ -54,6 +54,8 @@ def Qopt(m,k,n,seed=0, num_steps=2000, skip_count=0,write_steps=1000,plot=False,
         k: Recovery threshold
         num_steps: Number of optimization steps (too many steps may produce numerical instability)
         plot: Plot optimization progress and error pattern distribution
+        write_steps: Every write_steps steps objective error is computed and break condition is checked.
+        write: If true, every write_steps steps, in addition to computing error, current state is also written to an npy file.
         
     Returns:
         A: alpha coefficients
@@ -94,7 +96,7 @@ def Qopt(m,k,n,seed=0, num_steps=2000, skip_count=0,write_steps=1000,plot=False,
         filenum = 0
 
     if (write):
-        pathname = 'Data/arxiv/DAB' + '_' + str(m) + '_' + str(k) + '_' + str(n)+'/Trial_' + str(trial)
+        pathname = 'Data/OptCode/DAB' + '_' + str(m) + '_' + str(k) + '_' + str(n)+'/Trial_' + str(trial)
         pathlib.Path(pathname).mkdir(parents=True, exist_ok=True)
 
     # tic = time.perf_counter_ns()
@@ -276,7 +278,10 @@ def RunPk(m,k,n,seed=1234,num_steps=1000):
     return losses, epsilons
 
 if __name__ == '__main__':
-    A, B, D, Pk, error,skip_err_pats = Qopt(m=5, k=5, n=7, seed=787, num_steps=int(1e5), write_steps=int(1e4), plot=False, write=False)
+    NUM_STEPS = 100000
+    WRITE_STEPS = 1000
+    SEED = 787
+    A, B, D, Pk, error,skip_err_pats = Qopt(m=5, k=5, n=7, seed=SEED, num_steps=int(NUM_STEPS), write_steps=int(WRITE_STEPS), plot=False, write=False)
     # losses, epsilons = RunPk(m=3, k=3, n=6, seed=7, num_steps=int(1e6))
     # with open('Opt_3_3_6_7.npy', 'wb') as f:
     #     np.save(f, losses)
