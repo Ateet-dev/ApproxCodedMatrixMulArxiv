@@ -3,14 +3,19 @@ from OptCC import AlternateMinMultiply
 from scipy.special import comb as nCr
 from tensorflow import keras
 from sklearn.model_selection import KFold
+import scipy.special
+from tqdm import tqdm
 
 def softmax(x):
-    z = x - np.max(x,axis=0)
-    exps = np.exp(z)
-    probs = exps / np.sum(exps, axis=0)
-    return probs
+    return scipy.special.softmax(x,axis=0)
 
-def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
+# def softmax(x):
+#     z = x - np.max(x,axis=0)
+#     exps = np.exp(z)
+#     probs = exps / np.sum(exps, axis=0)
+#     return probs
+
+def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng,tqdmdisable=True):
     '''
         Runs logistic regression using uncoded and coded multiplications simultaneously in training step
          on the given dataset.
@@ -59,12 +64,10 @@ def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
     w_a3 = w.copy()
     eps = np.finfo(np.float64).eps
 
-    # print(np.linalg.norm(w))
-
     learning_rate = 0.001
     batch_size = 128
-    niterations=1000
-    print_after = 1001
+    niterations=40001
+    print_after = 40002
 
     flat_eye = np.eye(m).flatten()
     Desired_Matrix = np.kron(np.ones((p, 1)), flat_eye)
@@ -73,13 +76,11 @@ def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
     min_loss_ind = np.argmin(losses)
 
     # Uncomment this to run uncoded strategy with 2 failures. Ref OptCC.AlternateMinMultiply
-    # min_loss_ind = np.nan
+    min_loss_ind = np.nan
 
     tot_loss = np.linalg.norm(Desired_Matrix - D @ E) ** 2
-    for t in range(niterations+1):
+    for t in tqdm(range(niterations),disable=tqdmdisable):
         batch = rng1.randint(0, num_train, batch_size)
-        # if t==100:
-            # print(np.linalg.norm(batch))
         if (t%print_after==0):
             # For intermediate printing, not required otherwise, same thing is done in else part, without loss computation.
             z = w @ x_train
@@ -87,7 +88,7 @@ def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
             loss = -np.sum(np.log(probs + eps), where=y_train) / num_train
             probs = probs[:, batch]
 
-            z = AlternateMinMultiply(w_a1, x_train, D, alpha, beta, m, n,min_loss_ind)
+            z = AlternateMinMultiply(w_a1, x_train, D, alpha, beta, m, n, min_loss_ind)
             probs_a1 = softmax(z)
             loss_a1 = -np.sum(np.log(probs_a1 + eps), where=y_train) / num_train
             probs_a1 = probs_a1[:, batch]
@@ -97,7 +98,8 @@ def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
             loss_a2 = -np.sum(np.log(probs_a2 + eps), where=y_train) / num_train
             probs_a2 = probs_a2[:, batch]
 
-            z = AlternateMinMultiply(w_a3, x_train, D, alpha, beta, m, n, rng2.randint(0,D.shape[0],1)[0])
+            randint = rng2.randint(0, D.shape[0], 1)[0]
+            z = AlternateMinMultiply(w_a3, x_train, D, alpha, beta, m, n, randint)
             probs_a3 = softmax(z)
             loss_a3 = -np.sum(np.log(probs_a3 + eps), where=y_train) / num_train
             probs_a3 = probs_a3[:, batch]
@@ -120,45 +122,58 @@ def LR(m,k,r,filename,x_train,x_test,y_train,y_test,num_classes,seed,rng):
             probs_a2 = softmax(z)
 
             # Coded multiplication for randomly picked failure pattern
-            z = AlternateMinMultiply(w_a3, x_train[:, batch], D, alpha, beta, m, n, rng2.randint(0,D.shape[0],1)[0])
+            randint = rng2.randint(0,D.shape[0],1)[0]
+            z = AlternateMinMultiply(w_a3, x_train[:, batch], D, alpha, beta, m, n, randint)
             probs_a3 = softmax(z)
 
         # if (t==100):
         #     print(m,k,rng2.randint(0, D.shape[0], 1)[0])
 
         gradients = (probs - y_train[:, batch])@ x_train[:, batch].T
+
         gradients_a1 = AlternateMinMultiply(probs_a1 - y_train[:, batch], x_train[:, batch].T, D, alpha, beta, m, n, min_loss_ind)
         gradients_a2 = AlternateMinMultiply(probs_a2 - y_train[:, batch], x_train[:, batch].T, D, alpha, beta, m, n, max_loss_ind)
-        gradients_a3 = AlternateMinMultiply(probs_a3 - y_train[:, batch], x_train[:, batch].T, D, alpha, beta, m, n,rng2.randint(0,D.shape[0],1)[0])
+
+        randint = rng2.randint(0,D.shape[0],1)[0]
+        gradients_a3 = AlternateMinMultiply(probs_a3 - y_train[:, batch], x_train[:, batch].T, D, alpha, beta, m, n,randint)
 
         w = w - learning_rate * gradients
+
         w_a1 = w_a1 - learning_rate * gradients_a1
         w_a2 = w_a2 - learning_rate * gradients_a2
         w_a3 = w_a3 - learning_rate * gradients_a3
 
-    misclassified = np.sum(np.any((softmax(w@x_train)>0.5)^y_train,axis=0))
-    accuracy_train_DM = (num_train-misclassified)/num_train*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w @ x_train), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_train, axis=0))
+    accuracy_train_DM = (num_train - misclassified) / num_train * 100
 
-    misclassified = np.sum(np.any((softmax(w@x_test)>0.5)^y_test,axis=0))
-    accuracy_test_DM = (num_test-misclassified)/num_test*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w @ x_test), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_test, axis=0))
+    accuracy_test_DM = (num_test - misclassified) / num_test * 100
 
-    misclassified = np.sum(np.any((softmax(w_a1@x_train)>0.5)^y_train,axis=0))
-    accuracy_train_min = (num_train-misclassified)/num_train*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a1 @ x_train), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_train, axis=0))
+    accuracy_train_min = (num_train - misclassified) / num_train * 100
 
-    misclassified = np.sum(np.any((softmax(w_a1@x_test)>0.5)^y_test,axis=0))
-    accuracy_test_min = (num_test-misclassified)/num_test*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a1 @ x_test), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_test, axis=0))
+    accuracy_test_min = (num_test - misclassified) / num_test * 100
 
-    misclassified = np.sum(np.any((softmax(w_a2@x_train)>0.5)^y_train,axis=0))
-    accuracy_train_max = (num_train-misclassified)/num_train*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a2 @ x_train), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_train, axis=0))
+    accuracy_train_max = (num_train - misclassified) / num_train * 100
 
-    misclassified = np.sum(np.any((softmax(w_a2@x_test)>0.5)^y_test,axis=0))
-    accuracy_test_max = (num_test-misclassified)/num_test*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a2 @ x_test), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_test, axis=0))
+    accuracy_test_max = (num_test - misclassified) / num_test * 100
 
-    misclassified = np.sum(np.any((softmax(w_a3@x_train)>0.5)^y_train,axis=0))
-    accuracy_train_rand = (num_train-misclassified)/num_train*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a3 @ x_train),axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_train, axis=0))
+    accuracy_train_rand = (num_train - misclassified) / num_train * 100
 
-    misclassified = np.sum(np.any((softmax(w_a3@x_test)>0.5)^y_test,axis=0))
-    accuracy_test_rand = (num_test-misclassified)/num_test*100
+    preds = keras.utils.to_categorical(np.argmax(softmax(w_a3 @ x_test), axis=0), num_classes).astype(bool)
+    misclassified = np.sum(np.any(preds.T ^ y_test, axis=0))
+    accuracy_test_rand = (num_test - misclassified) / num_test * 100
 
     # if __name__ == '__main__':
     #     print('DM', 'Training Accuracy', accuracy_train_DM, 'Testing Accuracy', accuracy_test_DM)
@@ -199,6 +214,10 @@ if __name__ == '__main__':
     seed = 1
     n_splits = 10
 
+    nvariance = 0
+    filename = 'Data/arxiv/Chebyshev_5_5_2.npy'
+
+    # print(filename,nvariance)
     rng = np.random.RandomState()
     rng.seed(seed)
 
@@ -208,7 +227,7 @@ if __name__ == '__main__':
     for train_index, test_index in kf.split(X):
         X_train, X_test = X[train_index], X[test_index]
         Y_train, Y_test = y[train_index], y[test_index]
-        accuracies_fold = LR(m, k, r, 'Data/arxiv/Chebyshev_5_5_2.npy', X_train.T, X_test.T, Y_train.T, Y_test.T, num_classes,seed,rng)
+        accuracies_fold = LR(m, k, r, filename, X_train.T, X_test.T, Y_train.T, Y_test.T, num_classes,seed,rng,False)
         accuracies.append(accuracies_fold)
 
     accuracies = np.array(accuracies)

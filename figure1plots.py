@@ -107,7 +107,7 @@ plt.show()
 # Fig 1c
 plt.figure(figsize=(10,7))
 df=pd.DataFrame(outputs3)
-grid=sns.lineplot(data=df,x='m',y='loss',hue='r')
+grid=sns.lineplot(data=df,x='m',y='loss',hue='r',palette="bright")
 grid.set(yscale='log')
 grid.legend(['P=k+1', 'P=k+2','P=k+3'])
 # plt.savefig('../Data/Pics/res7.png')
