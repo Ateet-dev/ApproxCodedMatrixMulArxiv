@@ -118,11 +118,11 @@ plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
 plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex='all',gridspec_kw={'height_ratios': [4.5, 1]},figsize=(10, 7))
-fig.subplots_adjust(hspace=0.02)  # adjust space between axes
+fig.subplots_adjust(hspace=0.01)  # adjust space between axes
 
 # Fig 2a
 ks=range(m,n+1)
-ax1.plot(ks,chebres[0,:],label='chebyshev')
+ax1.plot(ks,chebres[0,:],label='Chebyshev')
 ax1.plot(ks,vanderres[0,:],label='MatDot')
 ax1.plot(ks,avanderres[0,:],label='Approx MatDot')
 ax1.plot(ks,optres[0,:],label='Opt Code(k=3)')
@@ -136,7 +136,7 @@ plt.xlabel(r'$N_{succ}\rightarrow$')
 ax1.set_ylabel(r'Loss $\rightarrow$')
 # ax1.set_title('Loss vs $N_{succ}$ for $m=3,P=6$')
 # ax1.legend(loc='upper left',bbox_to_anchor=(1.05, 1),fontsize='large')
-ax1.legend(fontsize='x-large',framealpha=0.2)
+# ax1.legend(fontsize='x-large',framealpha=0.8)
 # zoom-in / limit the view to different portions of the data
 ax1.set_ylim(1e-13, 2e2)  # outliers only
 ax2.set_ylim(1e-32, 1e-22)  # most of the data
@@ -147,7 +147,11 @@ ax2.spines['top'].set_visible(False)
 ax1.xaxis.tick_top()
 ax1.tick_params(labeltop=False)  # don't put tick labels at the top
 ax2.xaxis.tick_bottom()
-
+ax2.set_xticks(np.arange(m,n+1,1))
+ax2.grid(alpha=0.5)
+ax1.grid(alpha=0.5)
+ax1.axvline(x=5, color='r', linestyle='--')
+ax2.axvline(x=5, color='r', linestyle='--')
 d = .5  # proportion of vertical to horizontal extent of the slanted line
 kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
               linestyle="none", color='k', mec='k', mew=1, clip_on=False)
@@ -158,11 +162,11 @@ plt.show()
 
 # Fig 2b
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex='all',gridspec_kw={'height_ratios': [3, 1]},figsize=(10, 7))
-fig.subplots_adjust(hspace=0.03)  # adjust space between axes
+fig.subplots_adjust(hspace=0.01)  # adjust space between axes
 
 
 ks=range(m,n+1)
-ax1.plot(ks,chebres[1,:],label='chebyshev')
+ax1.plot(ks,chebres[1,:],label='Chebyshev')
 ax1.plot(ks,vanderres[1,:],label='MatDot')
 ax1.plot(ks,avanderres[1,:],label='Approx MatDot')
 ax1.plot(ks,optres[1,:],label='Opt Code(k=3)')
@@ -176,7 +180,7 @@ plt.xlabel(r'$N_{succ}\rightarrow$')
 ax1.set_ylabel(r'$\epsilon$ $\rightarrow$')
 # ax1.set_title('$\epsilon$ vs $N_{succ}$ for $m=3,P=6$')
 # ax1.legend(loc='upper left',bbox_to_anchor=(1.05, 1),fontsize='large')
-ax1.legend(fontsize='x-large')
+# ax1.legend(fontsize='x-large',framealpha=1,loc='upper left',bbox_to_anchor=(1.05, 1))
 
 # zoom-in / limit the view to different portions of the data
 ax1.set_ylim(1e-9, 1e-1)  # outliers only
@@ -188,7 +192,11 @@ ax2.spines['top'].set_visible(False)
 ax1.xaxis.tick_top()
 ax1.tick_params(labeltop=False)  # don't put tick labels at the top
 ax2.xaxis.tick_bottom()
-
+ax2.set_xticks(np.arange(m,n+1,1))
+ax2.grid(alpha=0.5)
+ax1.grid(alpha=0.5)
+ax1.axvline(x=5, color='r', linestyle='--')
+ax2.axvline(x=5, color='r', linestyle='--')
 d = .5  # proportion of vertical to horizontal extent of the slanted line
 kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
               linestyle="none", color='k', mec='k', mew=1, clip_on=False)
@@ -226,7 +234,7 @@ losses=np.array(losses)
 epsilons=np.array(epsilons)
 plt.figure(figsize=(9,7))
 [plt.semilogy(divs,epsilons[:,i],label=str(i+3)) for i in range(losses.shape[1])]
-plt.xlabel(r'div $\rightarrow$')
+plt.xlabel(r'$\gamma$ $\rightarrow$')
 plt.ylabel(r'$\epsilon$ $\rightarrow$')
 plt.legend(title='$N_{succ}$',fontsize='large',title_fontsize='xx-large')
 # plt.savefig('../Data/Pics/jres3.png')
@@ -264,6 +272,11 @@ plt.figure(figsize=(9,7))
 plt.xlabel(r'$N_{succ}$ $\rightarrow$')
 plt.ylabel(r'$\epsilon$ $\rightarrow$')
 # plt.legend(title="div",fontsize='large',loc='upper left',bbox_to_anchor=(1.05, 1))
-plt.legend(title="div",fontsize='large',title_fontsize='xx-large')
-# plt.savefig('../Data/Pics/jres4.png')
+plt.legend(title="$\gamma$",fontsize='large',title_fontsize='xx-large',framealpha=1)
+plt.xticks(np.arange(m,n+1,1))
+plt.grid(alpha=0.5)
+line1=plt.axvline(x=5, color='r', linestyle='--',label='$k=2m-1$')
+# first_legend = plt.legend(handles=[line1], loc='upper right')
+# ax = plt.gca().add_artist(first_legend)
+#plt.savefig('../Data/Pics/jres4.png')
 plt.show()
